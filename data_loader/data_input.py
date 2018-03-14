@@ -17,15 +17,15 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow import logging
 
 DATA_URL="http://files.grouplens.org/datasets/movielens/ml-1m.zip"
+logging.set_verbosity(tf.logging.INFO)
 
 def maybe_download():
-    #make dir `data`
-    pwd = os.getcwd() + "\\data\\"
-    if not os.path.exists(pwd):
-        os.mkdir(pwd)
-    tf.keras.utils.get_file(pwd+DATA_URL.split('/')[-1], DATA_URL,extract=True)
+    pwd = tf.keras.utils.get_file(DATA_URL.split('/')[-1], DATA_URL,extract=True)
+    pwd = os.path.dirname(pwd) + '\\ml-1m\\'
+    logging.info("data dir: {}".format(pwd))
     return pwd
 
 def load_lm_1m_data():
@@ -38,20 +38,20 @@ def load_lm_1m_data():
     }
 
     ratings_column = ['users','items','ratings','timestamp']
-    ratings = pd.read_csv(data_path+data_struct['ratings'], sep="::", names=ratings_column, header=0)
+    ratings = pd.read_csv(data_path+data_struct['ratings'], sep="::", names=ratings_column, header=0,engine='python')
 
     movies_column = ['index', 'name', 'genre']
-    movies = pd.read_csv(data_path + data_struct['movies'], sep="::", names=movies_column, header=0)
+    movies = pd.read_csv(data_path + data_struct['movies'], sep="::", names=movies_column, header=0,engine='python')
 
     users_column = ['index', 'gender', 'age', 'occupation', 'timestamp']
-    users = pd.read_csv(data_path + data_struct['users'], sep="::", names=users_column, header=0)
+    users = pd.read_csv(data_path + data_struct['users'], sep="::", names=users_column, header=0,engine='python')
 
     return ratings, movies, users
 
 def pre_excute(ratings):
-    ratings["user"] -= 1
-    ratings["item"] -= 1
-    for col in ("user", "item"):
+    ratings["users"] -= 1
+    ratings["items"] -= 1
+    for col in ("users", "items"):
         ratings[col] = ratings[col].astype(np.int32)
     ratings["ratings"] = ratings["ratings"].astype(np.float32)
 
@@ -63,4 +63,3 @@ def pre_excute(ratings):
     df_test = df[split_index:].reset_index(drop=True)
 
     return df_train, df_test
-
